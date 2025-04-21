@@ -1,15 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import User from "../models/User";
 
 // JWT секретный ключ - тот же, что в authController
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // Middleware для проверки авторизации
-export const authMiddleware = (
+export const authMiddleware = async (
     req: Request,
     res: Response,
     next: NextFunction
-): void => {
+): Promise<void> => {
     // Получение токена из заголовка
     const authHeader = req.header("Authorization");
     if (!authHeader) {
@@ -23,10 +24,21 @@ export const authMiddleware = (
         // Верификация токена
         const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
 
+        // Проверяем существование пользователя с таким ID
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            // Если по ID не найден пользователь, возможно это случай с неправильной авторизацией Steam
+            console.error("Не найден пользователь с ID:", decoded.id);
+            res.status(401).json({ message: "Пользователь не найден" });
+            return;
+        }
+
         // Добавление id пользователя в request
         (req as any).user = decoded.id;
         next();
     } catch (error) {
+        console.error("Ошибка проверки токена:", error);
         res.status(401).json({ message: "Недействительный токен" });
     }
 };

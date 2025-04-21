@@ -63,6 +63,14 @@ try {
                     // Извлекаем steamId из профиля
                     const steamId = profile.id;
 
+                    // Формируем полный URL аватара
+                    let avatarUrl = profile._json?.avatar;
+
+                    // Проверяем, содержит ли URL полный путь или нет
+                    if (avatarUrl && !avatarUrl.startsWith("http")) {
+                        avatarUrl = `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${avatarUrl}`;
+                    }
+
                     // Ищем пользователя по steamId
                     let user = await User.findOne({ steamId });
 
@@ -71,7 +79,7 @@ try {
                         user = new User({
                             steamId,
                             steamDisplayName: profile.displayName,
-                            steamAvatar: profile._json?.avatar,
+                            steamAvatar: avatarUrl,
                             steamProfile: profile._json?.profileurl,
                             lastLogin: new Date(),
                         });
@@ -79,7 +87,7 @@ try {
                     } else {
                         // Обновляем информацию о пользователе
                         user.steamDisplayName = profile.displayName;
-                        user.steamAvatar = profile._json?.avatar;
+                        user.steamAvatar = avatarUrl;
                         user.steamProfile = profile._json?.profileurl;
                         user.lastLogin = new Date();
                         await user.save();
@@ -98,15 +106,29 @@ try {
 
 // Сериализация пользователя для сессии
 passport.serializeUser((user: any, done) => {
-    done(null, user.id);
+    console.log("Сериализация пользователя:", user.id);
+    // Пользователь Steam имеет steamId, используем его вместо _id MongoDB
+    if (user.steamId) {
+        done(null, { id: user.id, steamId: user.steamId });
+    } else {
+        done(null, { id: user.id });
+    }
 });
 
 // Десериализация пользователя из сессии
-passport.deserializeUser(async (id: string, done) => {
+passport.deserializeUser(async (data: any, done) => {
     try {
-        const user = await User.findById(id);
+        console.log("Десериализация пользователя:", data);
+        // Если есть steamId, ищем пользователя по нему
+        let user;
+        if (data.steamId) {
+            user = await User.findOne({ steamId: data.steamId });
+        } else {
+            user = await User.findById(data.id);
+        }
         done(null, user);
     } catch (error) {
+        console.error("Ошибка десериализации:", error);
         done(error);
     }
 });

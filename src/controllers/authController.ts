@@ -124,41 +124,41 @@ export const steamCallback = async (
 
         const steamUser = req.user as any;
 
-        // Ищем или создаем пользователя с steamId
-        let user = await User.findOne({ steamId: steamUser.id });
-
-        if (!user) {
-            // Если пользователь не найден, создаем нового
-            user = new User({
-                steamId: steamUser.id,
-                steamDisplayName: steamUser.displayName,
-                steamAvatar: steamUser._json?.avatar,
-                steamProfile: steamUser._json?.profileurl,
+        // Прооверим, есть ли в пользователе steamId
+        if (!steamUser.steamId) {
+            res.status(400).json({
+                message: "Неверные данные пользователя Steam",
             });
-        } else {
-            // Обновляем информацию о пользователе, если он уже существует
-            user.steamDisplayName = steamUser.displayName;
-            user.steamAvatar = steamUser._json?.avatar;
-            user.steamProfile = steamUser._json?.profileurl;
+            console.error(
+                "Отсутствует steamId в данных пользователя:",
+                steamUser
+            );
+            return;
         }
 
-        // Обновляем время последнего входа
-        user.lastLogin = new Date();
-        await user.save();
+        // Формируем полный URL аватара
+        let avatarUrl = steamUser.steamAvatar || steamUser._json?.avatar;
 
-        // Генерация токена
-        const token = generateToken(user._id.toString());
+        // Проверяем, содержит ли URL полный путь или нет
+        if (avatarUrl && !avatarUrl.startsWith("http")) {
+            avatarUrl = `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/${avatarUrl}`;
+        }
+
+        // Генерация токена (используем ID из MongoDB)
+        const token = generateToken(steamUser._id.toString());
 
         // Создаем объект с данными авторизации
         const authData = {
             token,
             user: {
-                id: user._id,
-                steamId: user.steamId,
-                steamDisplayName: user.steamDisplayName,
-                steamAvatar: user.steamAvatar,
+                id: steamUser._id,
+                steamId: steamUser.steamId,
+                steamDisplayName: steamUser.steamDisplayName,
+                steamAvatar: avatarUrl,
             },
         };
+
+        console.log("Данные пользователя Steam для авторизации:", authData);
 
         // Вместо отправки JSON отправляем HTML-страницу, которая закроет окно и передаст данные родительскому окну
         const html = `
