@@ -55,8 +55,20 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
       return;
     }
     
+    // Сначала попробуем получить данные через OpenDota API
     try {
-      // Попробовать через STRATZ API сначала
+      console.log(`Getting profile data for ${steamId} using OpenDota API`);
+      const playerData = await getProfileFromOpenDota(steamId);
+      res.json(playerData);
+      return;
+    } catch (openDotaError) {
+      console.error('OpenDota API failed:', openDotaError);
+      // Если OpenDota не смог вернуть данные, пробуем STRATZ API
+    }
+    
+    // Если OpenDota не отработал, пробуем STRATZ
+    try {
+      console.log(`Getting profile data for ${steamId} using STRATZ API`);
       const steamAccountId = getSteamAccountId(steamId);
       
       const query = `
@@ -113,35 +125,24 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
                            }))[0]
         }))
       });
+    } catch (stratzError: any) {
+      console.error('STRATZ API failed:', stratzError.message);
       
-    } catch (error: any) {
-      console.log('STRATZ API failed, falling back to OpenDota API:', error.message);
-      
-      try {
-        // Если STRATZ API не сработал, используем OpenDota API
-        const playerData = await getProfileFromOpenDota(steamId);
-        res.json(playerData);
-      } catch (openDotaError) {
-        console.error('OpenDota fallback also failed:', openDotaError);
-        
-        // Если оба API не работают, возвращаем изначальную ошибку от STRATZ
-        if (error.message.includes('API token is missing')) {
-          res.status(500).json({ error: 'Server configuration error - API token missing' });
-          return;
-        }
-        
-        if (error.message.includes('Timeout')) {
-          res.status(504).json({ error: 'Timeout while connecting to API' });
-          return;
-        }
-        
-        if (error.message.includes('API error')) {
-          res.status(502).json({ error: 'Error from Dota APIs', details: error.message });
-          return;
-        }
-        
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+      // Оба API не сработали
+      if (stratzError.message.includes('API token is missing')) {
+        res.status(500).json({ error: 'Server configuration error - API token missing' });
+        return;
       }
+      
+      if (stratzError.message.includes('Timeout')) {
+        res.status(504).json({ error: 'Timeout while connecting to API' });
+        return;
+      }
+      
+      res.status(502).json({ 
+        error: 'Failed to fetch player data', 
+        details: stratzError.message
+      });
     }
   } catch (err: any) {
     console.error('getProfile error:', err.message);
