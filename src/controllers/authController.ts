@@ -99,6 +99,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             user: {
                 id: user._id,
                 email: user.email,
+                avatar: user.steamAvatar,
+                name: user.steamDisplayName,
             },
         });
     } catch (error) {
