@@ -7,7 +7,7 @@ import authRoutes from "./routes/auth";
 import passport from "./config/passport";
 import session from "express-session";
 import { checkSteamStrategy } from "./utils/steamCheck";
-
+import profileRoutes from "./routes/profile";
 dotenv.config();
 
 const app = express();
@@ -22,6 +22,9 @@ app.use((req, res, next) => {
 // Настройка CORS
 app.use(cors());
 app.use(express.json());
+
+// Подключение маршрутов API
+app.use('/api', profileRoutes);
 
 // Настройка сессий для Passport
 app.use(
