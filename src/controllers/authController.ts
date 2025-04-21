@@ -52,6 +52,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             user: {
                 id: user._id,
                 email: user.email,
+                steamAvatar: user.steamAvatar,
             },
         });
     } catch (error) {
