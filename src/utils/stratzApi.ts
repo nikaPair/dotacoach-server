@@ -2,8 +2,7 @@ import axios from "axios";
 
 const STRATZ_API_URL = "https://api.stratz.com/graphql";
 const STRATZ_API_TOKEN =
-  process.env.STRATZ_API_TOKEN ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJTdWJqZWN0IjoiMDg1NWMyYWYtMTJhNy00ZjlkLThkMDUtYjVmNWQwMDlkOTIxIiwiU3RlYW1JZCI6IjgzOTQxNTE2NSIsIm5iZiI6MTc0NTI2NzE3NiwiZXhwIjoxNzc2ODAzMTc2LCJpYXQiOjE3NDUyNjcxNzYsImlzcyI6Imh0dHBzOi8vYXBpLnN0cmF0ei5jb20ifQ.1vKtQZATIkajpHOOBYQ6hHtmxDtA1MC26qvB6gp7bBo";
+  process.env.STRATZ_API_TOKEN;
 
 // Проверка наличия токена при загрузке модуля
 console.log(`STRATZ API Token configured: ${!!STRATZ_API_TOKEN}`);
@@ -41,6 +40,11 @@ export const queryStratzApi = async (options: StratzQueryOptions) => {
         headers: {
           Authorization: `Bearer ${STRATZ_API_TOKEN}`,
           "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "application/json",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Origin": "https://stratz.com",
+          "Referer": "https://stratz.com/"
         },
         timeout,
       }
