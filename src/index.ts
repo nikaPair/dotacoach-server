@@ -23,8 +23,8 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
-// Подключение маршрутов API
-app.use('/api', profileRoutes);
+// Подключение маршрутов профиля
+app.use("/api/profile", profileRoutes);
 
 // Настройка сессий для Passport
 app.use(

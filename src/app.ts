@@ -1,9 +1,5 @@
 import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
-import routes from "./routes";
-import passport from "passport";
 import "./config/passport";
 
 // Инициализация Express
@@ -20,7 +16,3 @@ app.use(
 );
 
 app.use(express.json());
-
-// ... existing code ...
-
-// ... existing code ...

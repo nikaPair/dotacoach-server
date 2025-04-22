@@ -1,9 +1,14 @@
-import { Router } from 'express';
-import { getProfile } from '../controllers/profileController';
+import express from "express";
+import {
+    getProfile,
+    getPlayerStats,
+} from "../controllers/newProfileController";
+import { authMiddleware } from "../middleware/auth";
 
-const router = Router();
+const router = express.Router();
 
-// Здесь передаешь обработчик на роут
-router.get('/profile/:steamId', getProfile);
+// Маршруты для профиля пользователя
+router.get("/profile/:steamId", getProfile);
+router.get("/stats/:steamId", getPlayerStats);
 
 export default router;

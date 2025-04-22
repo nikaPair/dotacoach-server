@@ -12,7 +12,7 @@ const STEAM_API_KEY = "963EDAC318C7FE05B0959874FADE561D";
 // URL для обратного вызова после авторизации в Steam
 const STEAM_CALLBACK_URL =
     process.env.STEAM_CALLBACK_URL ||
-    "https://dotacoach-server.onrender.com/api/auth/steam/callback";
+    "http://localhost:5000/api/auth/steam/callback";
 
 // Опции для JWT стратегии
 const jwtOptions = {
@@ -44,7 +44,7 @@ console.log(
 console.log("STEAM_CALLBACK_URL:", STEAM_CALLBACK_URL);
 console.log(
     "STEAM_REALM:",
-    process.env.STEAM_REALM || "https://dotacoach-server.onrender.com/"
+    process.env.STEAM_REALM || "http://localhost:5000/"
 );
 
 try {
@@ -52,9 +52,7 @@ try {
         new SteamStrategy(
             {
                 returnURL: STEAM_CALLBACK_URL,
-                realm:
-                    process.env.STEAM_REALM ||
-                    "https://dotacoach-server.onrender.com/",
+                realm: process.env.STEAM_REALM || "http://localhost:5000/",
                 apiKey: STEAM_API_KEY,
             },
             async (identifier, profile, done) => {
